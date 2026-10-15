@@ -1,5 +1,7 @@
 # time_point
 
+[![CI](https://github.com/Kronuz/time-point/actions/workflows/ci.yml/badge.svg)](https://github.com/Kronuz/time-point/actions/workflows/ci.yml)
+
 A small, header-only, dependency-free **`std::chrono::time_point` helpers**
 library for C++20, extracted from [Xapiand](https://github.com/Kronuz/Xapiand).
 
