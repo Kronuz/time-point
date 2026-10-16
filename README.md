@@ -51,9 +51,8 @@ Convert back on the clock the value came from: each clock has its own epoch.
 ## 🎯 When to use it
 
 - ✅ Timestamps in binary records, queues, and atomics.
-- ⚠️ The header also defines `nanosleep(nsec)`, the same function as the
-  [nanosleep](https://github.com/Kronuz/nanosleep) library; including both headers
-  in one file is a redefinition error until this one includes the other.
+- ℹ️ The header re-exports `nanosleep(nsec)` from the
+  [nanosleep](https://github.com/Kronuz/nanosleep) library, which CMake fetches.
 
 ## 📚 Documentation
 

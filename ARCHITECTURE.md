@@ -1,8 +1,9 @@
 # Architecture
 
 The internal design of `time_point`: a single header with two conversion
-templates around `std::chrono::time_point` and a small `nanosleep` wrapper. For
-usage see `README.md`; for the repo map and invariants see `AGENTS.md`.
+templates around `std::chrono::time_point`, which also re-exports `nanosleep` from
+the nanosleep library. For usage see `README.md`; for the repo map and invariants
+see `AGENTS.md`.
 
 ## Shape
 
@@ -10,7 +11,7 @@ One header, header-only, nothing behind it but the standard `<chrono>` and the C
 `<time.h>` / `<errno.h>`:
 
 ```
-  time_point.hh   two time_point <-> ullong conversions + a nanosleep wrapper
+  time_point.hh   two time_point <-> ullong conversions; includes nanosleep.h
 ```
 
 ## The two conversions
@@ -39,20 +40,11 @@ resolution or finer, so the cast to `nanoseconds` is the only place precision
 could be lost, and a value that originated as an integer count of nanoseconds
 loses nothing.
 
-## The nanosleep wrapper
+## nanosleep
 
-The header also defines a free `nanosleep(unsigned long long nsec)` that takes a
-flat nanosecond count rather than a `struct timespec`. It splits the count into
-seconds and the nanosecond remainder, fills a `timespec`, and loops on the POSIX
-`::nanosleep` while it returns `< 0` with `errno == EINTR`, so a signal
-interrupting the sleep resumes it with the remaining time the kernel writes back
-into the same `timespec`. A zero count short-circuits to a no-op before touching
-the clock at all.
-
-The wrapper shares its name with the POSIX `nanosleep`; inside its body the call
-`nanosleep(&ts, &ts)` still resolves to the two-argument C function (different
-signature), so the one-argument overload and the system call coexist. That is the
-original Xapiand shape, kept as-is.
+`nanosleep(unsigned long long nsec)` comes from the
+[nanosleep](https://github.com/Kronuz/nanosleep) library, which documents the EINTR
+retry loop. This header includes it so existing callers keep compiling.
 
 ## Why a flat integer
 

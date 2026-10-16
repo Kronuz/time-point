@@ -25,17 +25,7 @@
 #include <chrono>            // for std::chrono
 #include <cmath>             // for std::pow, std::floor, std::log10
 #include <errno.h>           // for errno
-#include <time.h>            // for nanosleep
-
-
-inline void nanosleep(unsigned long long nsec) {
-	if (nsec > 0) {
-		struct timespec ts;
-		ts.tv_sec = static_cast<long>(nsec / 1000000000);
-		ts.tv_nsec = static_cast<long>(nsec % 1000000000);
-		while (nanosleep(&ts, &ts) < 0 && errno == EINTR) { }
-	}
-}
+#include "nanosleep.h"       // for nanosleep(unsigned long long), re-exported
 
 
 template <typename T>
