@@ -1,101 +1,77 @@
-# time_point
+# time-point
 
 [![CI](https://github.com/Kronuz/time-point/actions/workflows/ci.yml/badge.svg)](https://github.com/Kronuz/time-point/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)
+![Header-only](https://img.shields.io/badge/header--only-yes-green.svg)
 
-A small, header-only, dependency-free **`std::chrono::time_point` helpers**
-library for C++20, extracted from [Xapiand](https://github.com/Kronuz/Xapiand).
+Pack a `std::chrono::time_point` into one integer of nanoseconds and back, in
+C++20. For storing or sending an instant as a single field.
 
-## What it is
+## ✨ Highlights
 
-One header, `time_point.hh`: a couple of free function templates that move a
-`std::chrono::time_point` to and from a flat unsigned integer (nanoseconds since
-the clock's epoch), plus a tiny `nanosleep` wrapper that takes a count in
-nanoseconds. Nothing behind it but the standard `<chrono>` and the C `<time.h>` /
-`<errno.h>`.
+- **`time_point_to_ullong(tp)`**: nanoseconds since that clock's epoch.
+- **`time_point_from_ullong<Clock>(n)`**: the same instant back, on `Clock`
+  (`steady_clock` by default).
+- **Exact round trips** at nanosecond resolution, for any standard clock.
 
-The full set:
+## 📦 Installation
 
-- **`time_point_to_ullong(time_point<T>)`** — collapse any clock's time_point to
-  an `unsigned long long` of nanoseconds since that clock's epoch. The natural
-  shape for storing or sending an instant as a single integer.
-- **`time_point_from_ullong<T>(unsigned long long)`** — rebuild a `time_point` on
-  clock `T` from that integer. `T` defaults to `std::chrono::steady_clock`.
-- **`nanosleep(unsigned long long nsec)`** — sleep for `nsec` nanoseconds,
-  retrying across `EINTR`. A zero count is a no-op.
-
-The two conversions are inverses at nanosecond resolution: `to_ullong` then
-`from_ullong` (or the other way) lands back on the same instant, for any of the
-standard clocks.
-
-## Install
-
-CMake with `FetchContent`:
+Requires a C++20 compiler; CMake 3.14 or newer for the CMake route. CI builds it
+on Linux (x86_64, arm64), macOS (arm64, x86_64), and FreeBSD, plus ASan, UBSan,
+and TSan builds.
 
 ```cmake
 include(FetchContent)
-FetchContent_Declare(
-  time_point
+FetchContent_Declare(time_point
   GIT_REPOSITORY https://github.com/Kronuz/time-point.git
-  GIT_TAG        main
-)
+  GIT_TAG        main)
 FetchContent_MakeAvailable(time_point)
 
-target_link_libraries(your_target PRIVATE time_point::time_point)
+target_link_libraries(my_app PRIVATE time_point::time_point)
 ```
 
-The `time_point` target is a pure `INTERFACE` library: it compiles nothing,
-requests `cxx_std_20`, and puts the header directory on your include path. Then:
+## 🚀 Quick start
 
 ```cpp
 #include "time_point.hh"
-```
 
-Requires C++20. On macOS it builds with AppleClang/libc++, the same toolchain
-Xapiand uses. The header keeps its original filename, so a codebase that already
-`#include "time_point.hh"` just needs this repo on its include path.
-
-## Usage
-
-```cpp
-#include "time_point.hh"
+#include <cassert>
 #include <chrono>
 
-// Store an instant as a single integer, restore it later:
-auto now  = std::chrono::steady_clock::now();
-unsigned long long packed = time_point_to_ullong(now);   // ns since epoch
-auto back = time_point_from_ullong(packed);              // back == now
-
-// Pick the clock explicitly when it matters:
-auto sys  = time_point_from_ullong<std::chrono::system_clock>(packed);
-
-// Sleep for a count of nanoseconds, EINTR-safe:
-nanosleep(5'000'000ULL);   // 5 milliseconds
-nanosleep(0);              // no-op
+int main() {
+	auto now = std::chrono::steady_clock::now();
+	unsigned long long packed = time_point_to_ullong(now);
+	assert(time_point_from_ullong(packed) == now);
+}
 ```
 
-`time_point_to_ullong` works on any clock's time_point; the value it returns is
-nanoseconds since *that clock's* epoch, so pair it with the matching clock when
-you convert back.
+Convert back on the clock the value came from: each clock has its own epoch.
 
-## Build & test
+## 🎯 When to use it
+
+- ✅ Timestamps in binary records, queues, and atomics.
+- ⚠️ The header also defines `nanosleep(nsec)`, the same function as the
+  [nanosleep](https://github.com/Kronuz/nanosleep) library; including both headers
+  in one file is a redefinition error until this one includes the other.
+
+## 📚 Documentation
+
+- [ARCHITECTURE.md](ARCHITECTURE.md): the conversions.
+- [AGENTS.md](AGENTS.md): repository map and traps.
+
+## 🛠️ Building and testing
 
 ```sh
 cmake -B build && cmake --build build && ctest --test-dir build
 ```
 
-The test round-trips integers through `from_ullong` / `to_ullong` (and back the
-other way starting from a live `now()`), checks `steady_clock::now()` is non-zero
-and monotonic non-decreasing across two reads, and confirms the `nanosleep`
-wrapper actually passes time (a 5ms sleep advances an independent `steady_clock`
-read). It prints `all time_point tests passed` and exits 0.
+## 🤝 Contributing
 
-## Provenance
+Issues and pull requests are welcome. Read [AGENTS.md](AGENTS.md) first. CI must
+pass on every platform.
 
-Extracted from [Xapiand](https://github.com/Kronuz/Xapiand). `time_point.hh` had
-zero dependencies already (only `<chrono>` and the C time/errno headers), so it
-was copied verbatim, no decoupling delta. See [ARCHITECTURE.md](ARCHITECTURE.md)
-for the design and [AGENTS.md](AGENTS.md) for the repo map and invariants.
+## 📄 License
 
-## License
-
-MIT, Copyright (c) 2015-2019 Dubalu LLC. See [LICENSE](LICENSE).
+MIT, Copyright (c) 2015-2018 Dubalu LLC. See [LICENSE](LICENSE). Extracted from
+[Xapiand](https://github.com/Kronuz/Xapiand).
