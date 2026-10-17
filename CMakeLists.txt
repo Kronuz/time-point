@@ -10,7 +10,7 @@ include(FetchContent)
 FetchContent_Declare(
 	nanosleep
 	GIT_REPOSITORY https://github.com/Kronuz/nanosleep.git
-	GIT_TAG        main
+	GIT_TAG        256aaf62e70c37239798779fa6b305a9c0491803
 )
 FetchContent_MakeAvailable(nanosleep)
 
