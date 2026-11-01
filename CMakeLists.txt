@@ -3,9 +3,9 @@ project(time_point LANGUAGES CXX)
 
 # --- Library target ---
 # time_point is header-only: one header (time_point.hh) with helpers that convert a
-# std::chrono::time_point to and from a nanoseconds-since-epoch unsigned integer. It
-# re-exports nanosleep() from the nanosleep library rather than defining its own, so
-# both headers can share a translation unit.
+# std::chrono::time_point to and from a nanoseconds-since-epoch integer, signed or
+# unsigned. It re-exports nanosleep() from the nanosleep library rather than defining its
+# own, so both headers can share a translation unit.
 include(FetchContent)
 FetchContent_Declare(
 	nanosleep
@@ -32,4 +32,11 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   add_executable(time_point_both_headers test/both_headers.cc)
   target_link_libraries(time_point_both_headers PRIVATE time_point)
   add_test(NAME time_point_both_headers COMMAND time_point_both_headers)
+  # One executable per claim, so a failure names it: clocks that do not tick in nanoseconds,
+  # instants before the epoch (the signed pair), and the old conversions as a reference.
+  foreach(name coarse_clocks pre_epoch diff)
+    add_executable(time_point_${name} test/${name}.cc)
+    target_link_libraries(time_point_${name} PRIVATE time_point)
+    add_test(NAME time_point_${name} COMMAND time_point_${name})
+  endforeach()
 endif()

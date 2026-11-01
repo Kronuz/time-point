@@ -8,6 +8,7 @@
 // sanely (monotonic, advances across a short sleep).
 //
 // Build via CMake: cmake -B build && cmake --build build && ctest --test-dir build
+#undef NDEBUG   // these checks are asserts: keep them live in a Release build
 #include <cassert>
 #include <chrono>
 #include <cstdint>
@@ -19,12 +20,9 @@
 // ---------------------------------------------------------------------------
 // ullong -> time_point -> ullong is the identity at nanosecond resolution.
 //
-// time_point_from_ullong<T> builds a T::time_point straight from a nanoseconds
-// duration, so it is well-formed only for clocks whose native time_point ticks
-// in nanoseconds (steady_clock, and high_resolution_clock which aliases it on
-// libc++). system_clock ticks coarser (microseconds on libc++), so feeding it
-// nanoseconds wouldn't compile; that asymmetry is part of the header's contract
-// and is documented in AGENTS.md. We round-trip the nanosecond clocks here.
+// The clocks here tick in nanoseconds (steady_clock, and high_resolution_clock which
+// aliases it on libc++), so the count survives the trip. A clock that ticks coarser
+// drops the nanoseconds below its tick: test/coarse_clocks.cc covers those.
 // ---------------------------------------------------------------------------
 
 static void test_roundtrip_from_ullong() {

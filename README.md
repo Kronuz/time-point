@@ -9,17 +9,26 @@ Part of [Kronuz C++ Libraries](https://github.com/Kronuz/cpp-libraries), a colle
 
 Header-only time_point packing for C++20: a std::chrono instant to one integer of
 nanoseconds and back. Both directions pivot on `std::chrono::nanoseconds`, so the value
-is the count since the clock's epoch and a round trip is exact. Reach for it to store an
+is the count since the clock's epoch, negative before it. Reach for it to store an
 instant in a fixed-width column, a binary record, a queue entry or an atomic.
 
 ## ✨ Highlights
 
-- **`time_point_to_ullong(tp)`:** nanoseconds since the epoch of `tp`'s clock, as an
-  `unsigned long long`; the clock is deduced.
-- **`time_point_from_ullong<Clock>(n)`:** the same instant back on `Clock`, which
-  defaults to `std::chrono::steady_clock`.
-- **Exact round trips** for clocks that tick in nanoseconds.
-- **Two function templates** in one header, over `<chrono>`.
+- **`time_point_to_llong(tp)`:** nanoseconds since the epoch of `tp`'s clock as a
+  `long long`, negative before the epoch; clock and duration are deduced. Counts order
+  like the instants.
+- **`time_point_to_ullong(tp)`:** the same count as an `unsigned long long`. An instant
+  before the epoch is its two's complement image, `2^63` or more, so it sorts after
+  every later instant as an unsigned integer.
+- **`time_point_from_llong<Clock>(n)` and `time_point_from_ullong<Clock>(n)`:** the
+  instant back on `Clock`, which defaults to `std::chrono::steady_clock`. On a clock
+  that ticks coarser than a nanosecond (libc++'s `system_clock` ticks in microseconds)
+  the instant rounds down to the tick; the unsigned form reads `2^63` and up as before
+  the epoch.
+- **Exact round trips:** an instant converts to its count and back unchanged on clocks
+  that tick in nanoseconds or coarser; a count converts to an instant and back
+  unchanged on clocks that tick in nanoseconds or finer.
+- **Four function templates** in one header, over `<chrono>`.
 
 ## 🚀 Quick start
 
@@ -40,6 +49,12 @@ int main() {
 	std::printf("%lld ms\n", static_cast<long long>(
 		std::chrono::duration_cast<std::chrono::milliseconds>(t.time_since_epoch()).count()));
 	// 1500 ms
+
+	// An instant before the epoch has a negative count, on any clock.
+	auto before = std::chrono::system_clock::time_point(std::chrono::seconds(-1));
+	std::printf("%lld ns\n", time_point_to_llong(before));  // -1000000000 ns
+	std::puts(time_point_from_llong<std::chrono::system_clock>(-1'000'000'000) == before
+		? "same instant" : "different");  // same instant
 }
 ```
 
@@ -71,11 +86,9 @@ Link `time_point::time_point` and include `time_point.hh`.
 
 Not for:
 
-- Clocks that tick coarser than nanoseconds on the way back:
-  `time_point_from_ullong<std::chrono::system_clock>` does not compile on libc++, whose
-  `system_clock` ticks in microseconds. `time_point_to_ullong` takes any clock.
-- Instants before the clock's epoch: the count is unsigned, so a negative one wraps to a
-  huge value and sorts after every later instant.
+- Instants more than about 292 years from the clock's epoch: the count is a 64-bit
+  number of nanoseconds, so a wider-ranging `time_point` (for instance seconds in the
+  year 3000) overflows it.
 - Parsing, formatting or date math: see [datetime](https://github.com/Kronuz/datetime).
 
 ## 📚 Documentation
