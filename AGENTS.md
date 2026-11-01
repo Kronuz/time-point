@@ -38,6 +38,35 @@ is `time_point_test`; the registered CTest names are `time_point`,
 `time_point_diff`. `test/test.cc` undefines `NDEBUG` so its `assert`s run in a Release
 build; the other tests use `CHECK`.
 
+## Verification and benchmarks
+
+The method shared by the Kronuz libraries is in
+[docs/PERFORMANCE.md](https://github.com/Kronuz/cpp-libraries/blob/main/docs/PERFORMANCE.md).
+
+- **Tests.** `cmake -B build && cmake --build build && ctest --test-dir build` runs the five
+  CTest tests above.
+- **Differential.** `time_point_diff` (`test/diff.cc`) compares both conversions with the frozen
+  code of `43d8a84` in `test/old/time_point_old.hh` (never edited): bit for bit on the nanosecond
+  clocks, over 200,000 random counts per clock and the edge values. The one class that differs
+  (an instant before the epoch at a tick finer than a nanosecond) is listed in the test, which
+  asserts old != new there.
+- **Oracles.** `std::chrono` comparisons, never a second copy of the division: the nanosecond
+  count `n` of a tick `t` satisfies `0 <= t - n ns < 1 ns`, and the `int64` limits are hand-worked
+  decimal literals (`time_point_coarse_clocks`, `time_point_pre_epoch`, `time_point_diff`).
+- **Sanitizers.** CI (`.github/workflows/ci.yml`, which calls the shared
+  [cmake.yml](https://github.com/Kronuz/cpp-libraries/blob/main/.github/workflows/cmake.yml))
+  runs every test in an ASan+UBSan build and a TSan build, with clang on Linux. The ASan+UBSan
+  job is:
+
+  ```sh
+  CC=clang CXX=clang++ cmake -B build-asan -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer -D_GLIBCXX_ASSERTIONS" \
+    -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+  cmake --build build-asan && ASAN_OPTIONS=detect_leaks=1 ctest --test-dir build-asan --output-on-failure
+  ```
+
+- **Not here.** The repository has no benchmark target, fuzz target or mutation script.
+
 ## Conventions
 
 - **C++20.** The target requests `cxx_std_20` to stay uniform with the sibling
