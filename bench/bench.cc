@@ -93,8 +93,8 @@ int main() {
 	}, N));
 	row("time_point_from_ullong<steady>(n)", bench([&] {
 		const unsigned long long* p = launder(counts.data());
-		long long s = 0;
-		for (std::size_t i = 0; i < N; ++i) s += time_point_from_ullong(p[i]).time_since_epoch().count();
+		unsigned long long s = 0;
+		for (std::size_t i = 0; i < N; ++i) s += static_cast<unsigned long long>(time_point_from_ullong(p[i]).time_since_epoch().count());
 		keep(s);
 	}, N));
 	row("time_point_to_ullong(system tp)", bench([&] {
@@ -105,8 +105,8 @@ int main() {
 	}, N));
 	row("from_ullong(to_ullong(steady tp)) round trip", bench([&] {
 		const clk::time_point* p = launder(steady.data());
-		long long s = 0;
-		for (std::size_t i = 0; i < N; ++i) s += time_point_from_ullong(time_point_to_ullong(p[i])).time_since_epoch().count();
+		unsigned long long s = 0;
+		for (std::size_t i = 0; i < N; ++i) s += static_cast<unsigned long long>(time_point_from_ullong(time_point_to_ullong(p[i])).time_since_epoch().count());
 		keep(s);
 	}, N));
 	row("time_point_to_ullong(system_clock::now())", bench([&] {
@@ -117,20 +117,20 @@ int main() {
 #ifndef BENCH_OLD
 	row("time_point_from_ullong<system_clock>(n)", bench([&] {
 		const unsigned long long* p = launder(counts.data());
-		long long s = 0;
-		for (std::size_t i = 0; i < N; ++i) s += time_point_from_ullong<std::chrono::system_clock>(p[i]).time_since_epoch().count();
+		unsigned long long s = 0;
+		for (std::size_t i = 0; i < N; ++i) s += static_cast<unsigned long long>(time_point_from_ullong<std::chrono::system_clock>(p[i]).time_since_epoch().count());
 		keep(s);
 	}, N));
 	row("time_point_to_llong(steady tp)", bench([&] {
 		const clk::time_point* p = launder(steady.data());
-		long long s = 0;
-		for (std::size_t i = 0; i < N; ++i) s += time_point_to_llong(p[i]);
+		unsigned long long s = 0;
+		for (std::size_t i = 0; i < N; ++i) s += static_cast<unsigned long long>(time_point_to_llong(p[i]));
 		keep(s);
 	}, N));
 	row("time_point_from_llong<steady>(n)", bench([&] {
 		const unsigned long long* p = launder(counts.data());
-		long long s = 0;
-		for (std::size_t i = 0; i < N; ++i) s += time_point_from_llong(static_cast<long long>(p[i])).time_since_epoch().count();
+		unsigned long long s = 0;
+		for (std::size_t i = 0; i < N; ++i) s += static_cast<unsigned long long>(time_point_from_llong(static_cast<long long>(p[i])).time_since_epoch().count());
 		keep(s);
 	}, N));
 #endif
