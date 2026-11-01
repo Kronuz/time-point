@@ -71,7 +71,7 @@ arm64), macOS (arm64, x86_64) and FreeBSD, plus ASan, UBSan and TSan builds.
 include(FetchContent)
 FetchContent_Declare(time_point
   GIT_REPOSITORY https://github.com/Kronuz/time-point.git
-  GIT_TAG        2f1f7f942090d2941f970390dcad56c9fe99ccaa)  # or main, to track the tip
+  GIT_TAG        624c2e9a15fd477b8aa5a405184a30b0caeb9038)  # or main, to track the tip
 FetchContent_MakeAvailable(time_point)
 
 target_link_libraries(my_app PRIVATE time_point::time_point)

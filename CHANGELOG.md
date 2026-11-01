@@ -57,3 +57,24 @@ releases, so entries are dated.
 - A conversion that must drop precision rounds toward negative infinity
   (`std::chrono::floor`) instead of toward zero (`duration_cast`). Only an instant before
   the epoch can tell them apart; after the epoch they are the same value.
+
+### Performance
+
+Apple M4 Pro (arm64) and Intel i9-9980HK (x86_64), Apple clang 17, `-O2`, 4096 inputs per
+row, best of 9 runs of about 15 ms, best of 5 rounds, each binary run twice (the second copy
+of the old code, the A/A column, differs by at most about 3%), under an exclusive hold. The
+inputs are read through an opaque pointer so a row cannot be hoisted out of its repetitions.
+Nanoseconds per operation:
+
+| row | M4 old | M4 new | ratio | i9 old | i9 new | ratio |
+|---|---|---|---|---|---|---|
+| `time_point_to_ullong(steady tp)` | 0.061 | 0.061 | 1.00 | 0.069 | 0.068 | 0.99 |
+| `time_point_from_ullong<steady>(n)` | 0.060 | 0.061 | 1.02 | 0.066 | 0.065 | 0.99 |
+| `time_point_to_ullong(system tp)` | 0.164 | 0.162 | 0.99 | 0.301 | 0.298 | 0.99 |
+| `from_ullong(to_ullong(steady tp))` | 0.061 | 0.061 | 1.00 | 0.069 | 0.069 | 1.00 |
+| `time_point_to_ullong(system_clock::now())` | 14.04 | 13.99 | 1.00 | 27.15 | 27.23 | 1.00 |
+| `time_point_from_ullong<system_clock>(n)` | does not build on libc++ | 0.286 | | does not build | 0.972 | |
+| `time_point_to_llong(steady tp)` | | 0.061 | | | 0.069 | |
+| `time_point_from_llong<steady>(n)` | | 0.061 | | | 0.068 | |
+
+Every row that existed before is within the A/A spread.
