@@ -51,6 +51,8 @@ releases, so entries are dated.
   `0 <= tick - n ns < 1 ns`.
 - The tests that use `assert` keep it live under `NDEBUG`, so the README's Release build
   runs them; the new tests use their own `CHECK`.
+- `bench/`: the benchmark rows of the Performance section and `abcmp.py`, behind
+  `TIME_POINT_BUILD_BENCH`. CI builds them and runs each binary once.
 
 ### Changed
 
@@ -77,4 +79,6 @@ Nanoseconds per operation:
 | `time_point_to_llong(steady tp)` | | 0.061 | | | 0.069 | |
 | `time_point_from_llong<steady>(n)` | | 0.061 | | | 0.068 | |
 
-Every row that existed before is within the A/A spread.
+Every row that existed before is within the A/A spread. The rows are `bench/bench.cc`; build it
+with `-DTIME_POINT_BUILD_BENCH=ON` and run `python3 bench/abcmp.py build 5` (`AGENTS.md`,
+"Verification and benchmarks").

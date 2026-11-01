@@ -15,7 +15,8 @@ test/coarse_clocks.cc        Clocks that tick coarser or finer than a nanosecond
 test/pre_epoch.cc            The signed pair: edges, order of the counts, round trips, instants before the epoch, floor on coarse and fine clocks.
 test/diff.cc                 The library against the frozen old conversions (test/old/); the one result class that differs is listed and asserted.
 test/clocks.h, check.h       Test clocks with a chosen tick; CHECK(), which stays live under NDEBUG.
-CMakeLists.txt               INTERFACE library `time_point` (+ alias time_point::time_point); CTest tests `time_point`, `time_point_both_headers`, `time_point_coarse_clocks`, `time_point_pre_epoch`, `time_point_diff`.
+bench/bench.cc               The conversion rows, built against the library and against test/old/ (TIME_POINT_BUILD_BENCH); bench/abcmp.py pairs the runs.
+CMakeLists.txt               INTERFACE library `time_point` (+ alias time_point::time_point); CTest tests `time_point`, `time_point_both_headers`, `time_point_coarse_clocks`, `time_point_pre_epoch`, `time_point_diff`, and with the bench option `time_point_bench_new`, `time_point_bench_old`.
 LICENSE                      MIT, Copyright (c) 2015-2019 Dubalu LLC.
 README.md                    What it is, install, usage.
 ARCHITECTURE.md              Internal design: the conversions.
@@ -65,7 +66,18 @@ The method shared by the Kronuz libraries is in
   cmake --build build-asan && ASAN_OPTIONS=detect_leaks=1 ctest --test-dir build-asan --output-on-failure
   ```
 
-- **Not here.** The repository has no benchmark target, fuzz target or mutation script.
+- **Benchmark.** The rows of the CHANGELOG's Performance table are `bench/bench.cc`, built three
+  times: against the library (`time_point_bench_new`) and twice against the frozen conversions of
+  `43d8a84` in `test/old/time_point_old.hh` (`time_point_bench_old`, `time_point_bench_old2`, whose
+  ratio to the first is the A/A spread). CI builds them and runs each once, which times nothing.
+  Time on an otherwise idle machine, under a hold (the shared method above):
+
+  ```sh
+  cmake -B build -DCMAKE_BUILD_TYPE=Release -DTIME_POINT_BUILD_BENCH=ON && cmake --build build
+  python3 bench/abcmp.py build 5     # best of 5 rounds, binaries back to back
+  ```
+
+- **Not here.** The repository has no fuzz target or mutation script.
 
 ## Conventions
 
