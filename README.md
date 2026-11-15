@@ -93,6 +93,8 @@ Not for:
 
 ## 📚 Documentation
 
+- [The Bag of Holding](https://kronuz.github.io/blog/bag-of-holding/):
+  the Familiars post that covers `time-point` among the small helpers.
 - [ARCHITECTURE.md](ARCHITECTURE.md): the two conversions and why the pivot is
   nanoseconds.
 - [AGENTS.md](AGENTS.md): repository map, invariants and traps.
